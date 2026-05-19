@@ -1,0 +1,51 @@
+% Define the source folder with videos and the destination folder for frames
+videoFolder = 'E:\videoas'; % Change this to your video folder path
+outputFolder = 'E:\output_frames'; % Change this to your output folder path
+
+% Get a list of all video files in the folder
+videoFiles = dir(fullfile(videoFolder, '*.mp4')); % Change the extension if needed (.avi, .mov, etc.)
+
+% Define start and end times for frame extraction
+startTime = 4.5; % Start time in seconds
+endTime = 5.2; % End time in seconds
+
+% Loop through each video file
+for i = 1:length(videoFiles)
+    % Get the video file name and full path
+    videoFile = fullfile(videoFolder, videoFiles(i).name);
+
+    % Create a VideoReader object
+    videoReader = VideoReader(videoFile);
+
+    % Create a unique folder for this video
+    [~, videoName, ~] = fileparts(videoFiles(i).name);
+    outputVideoFolder = fullfile(outputFolder, videoName);
+    if ~exist(outputVideoFolder, 'dir')
+        mkdir(outputVideoFolder);
+    end
+
+    % Read frames between the specified times
+    frameNumber = 1;
+    while hasFrame(videoReader)
+        % Get the current time in the video
+        currentTime = videoReader.CurrentTime;
+        
+        % If within the desired time range, save the frame
+        if currentTime >= startTime && currentTime <= endTime
+            % Read the frame
+            frame = readFrame(videoReader);
+
+            % Save the frame as an image
+            frameFileName = fullfile(outputVideoFolder, sprintf('frame_%03d.png', frameNumber));
+            imwrite(frame, frameFileName);
+
+            frameNumber = frameNumber + 1;
+        elseif currentTime > endTime
+            % If past the desired time range, break the loop
+            break;
+        else
+            % Otherwise, skip the frame
+            readFrame(videoReader);
+        end
+    end
+end
